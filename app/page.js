@@ -1,9 +1,11 @@
 import Link from 'next/link';
 
+// 👇 ЭТА СТРОКА ГОВОРИТ NEXT.JS НЕ УМИРАТЬ
+export const dynamic = 'force-dynamic'; 
+
 // Функция для получения статей из Strapi
 async function getArticles() {
   const url = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
-  // 👇 Вот наш НОВЫЙ секретный токен
   const token = process.env.STRAPI_API_TOKEN;
 
   if (!token) {
@@ -11,7 +13,6 @@ async function getArticles() {
     return { data: [] };
   }
 
-  // 👇 Мы добавляем "Authorization" к запросу
   const res = await fetch(`${url}/api/articles?populate=*`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -27,7 +28,7 @@ async function getArticles() {
   return json;
 }
 
-// ... (остальная часть кода для отображения страницы точно такая же, как была)
+// ... (остальная часть кода для отображения страницы точно такая же)
 export default async function Home() {
   const articlesData = await getArticles();
   const articles = articlesData.data || [];
@@ -41,7 +42,7 @@ export default async function Home() {
           <p className="text-xl text-gray-600">Список статей пуст.</p>
           <p className="text-md text-gray-500 mt-2">Создайте первую статью в админке Strapi!</p>
           <p className="text-sm text-red-500 mt-4">
-            *Если статьи есть, но не видны, проверьте токен API и права в Strapi.*
+            *Если статьи есть, но не видны, проблема была в том, что Strapi не отвечал при сборке.*
           </p>
         </div>
       ) : (
