@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-// 👇 ЭТА СТРОКА ГОВОРИТ NEXT.JS НЕ УМИРАТЬ
+// 👇 ЭТА СТРОКА ГОВОРИТ NEXT.JS НЕ КЕШИРОВАТЬ СТРАНИЦУ
 export const dynamic = 'force-dynamic'; 
 
 // Функция для получения статей из Strapi
@@ -17,6 +17,8 @@ async function getArticles() {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    // 👇 ГЛАВНОЕ ИСПРАВЛЕНИЕ: ИГНОРИРУЕМ КЕШ И СЕТЕВОЙ ЗАПРОС ПРИ РАБОТЕ САЙТА
+    cache: 'no-store', 
   });
 
   if (!res.ok) {
@@ -28,7 +30,7 @@ async function getArticles() {
   return json;
 }
 
-// ... (остальная часть кода для отображения страницы точно такая же)
+// ... (Остальная часть кода для отображения страницы)
 export default async function Home() {
   const articlesData = await getArticles();
   const articles = articlesData.data || [];
@@ -42,13 +44,17 @@ export default async function Home() {
           <p className="text-xl text-gray-600">Список статей пуст.</p>
           <p className="text-md text-gray-500 mt-2">Создайте первую статью в админке Strapi!</p>
           <p className="text-sm text-red-500 mt-4">
-            *Если статьи есть, но не видны, проблема была в том, что Strapi не отвечал при сборке.*
+            *Если статьи есть, но не видны, проверьте запуск Strapi в PuTTY!*
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {articles.map((article) => {
             const attributes = article.attributes;
+            
+            // 👇 ЗАЩИТА ОТ ПАДЕНИЯ!
+            if (!attributes || !attributes.title) return null; 
+
             return (
               <div key={article.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="h-48 w-full bg-gray-300 flex items-center justify-center">
