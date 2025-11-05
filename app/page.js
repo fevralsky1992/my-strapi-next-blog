@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-// 👇 ЭТА СТРОКА ГОВОРИТ NEXT.JS НЕ КЕШИРОВАТЬ СТРАНИЦУ
+// ЭТА СТРОКА ГОВОРИТ NEXT.JS НЕ КЕШИРОВАТЬ
 export const dynamic = 'force-dynamic'; 
 
 // Функция для получения статей из Strapi
@@ -13,12 +13,12 @@ async function getArticles() {
     return { data: [] };
   }
 
+  // 👇 ФИНАЛЬНЫЙ ФИКС: ЖДЕМ ОТВЕТА ДОЛЬШЕ!
   const res = await fetch(`${url}/api/articles?populate=*`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    // 👇 ГЛАВНОЕ ИСПРАВЛЕНИЕ: ИГНОРИРУЕМ КЕШ И СЕТЕВОЙ ЗАПРОС ПРИ РАБОТЕ САЙТА
-    cache: 'no-store', 
+    next: { revalidate: 60 }, // Ждем 60 секунд, чтобы Strapi успел проснуться
   });
 
   if (!res.ok) {
@@ -44,7 +44,7 @@ export default async function Home() {
           <p className="text-xl text-gray-600">Список статей пуст.</p>
           <p className="text-md text-gray-500 mt-2">Создайте первую статью в админке Strapi!</p>
           <p className="text-sm text-red-500 mt-4">
-            *Если статьи есть, но не видны, проверьте запуск Strapi в PuTTY!*
+            *Если статьи есть, но не видны, проблема может быть в таймауте сервера.*
           </p>
         </div>
       ) : (
@@ -52,7 +52,7 @@ export default async function Home() {
           {articles.map((article) => {
             const attributes = article.attributes;
             
-            // 👇 ЗАЩИТА ОТ ПАДЕНИЯ!
+            // ЗАЩИТА ОТ ПАДЕНИЯ!
             if (!attributes || !attributes.title) return null; 
 
             return (
